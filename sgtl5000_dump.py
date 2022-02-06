@@ -415,7 +415,7 @@ class DUMP:
         return OrderedDict({
             "DAP_AVC_DECAY": bin(v)[2:],
             "RATE": v & 0x0FFF
-        })    
+        })
 
     def get_dap_coef_wr_b1_msb(self):
         v = self.codec.read_word(self.codec.DAP_COEF_WR_B1_MSB)
@@ -470,6 +470,7 @@ class DUMP:
         })
 
     def print_all(self):
+        """Prints all SGTL5000 registers."""
         method_list = [func for func in dir(DUMP) if callable(getattr(DUMP, func)) and func.startswith("get_")]
         for method in method_list:
             results = getattr(self, method)()
