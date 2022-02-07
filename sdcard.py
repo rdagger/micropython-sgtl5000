@@ -4,9 +4,11 @@ MicroPython driver for SD cards using SPI bus.
 Requires an SPI bus and a CS pin.  Provides readblocks and writeblocks
 methods so the device can be mounted as a filesystem.
 
-This is a temporary subsitute for the machine.SDCard class,
-which I was unable to get working on the Teensy 4.0.  The
-machine.SDCard class does work for Teensy 4.1
+This is a temporary subsitute for the machine.SDCard class on Teensy 4.0.
+Currently the machine.SDCard works with the uSDHC peripheral of the
+i.MXRT controller. It does not support SD Card access via SPI so far.
+This library is only necessary for the Teensy 4.0.  The
+machine.SDCard class does work for Teensy 4.1's built-in SD Card.
 
 MicroPython source for sdcard.py:
 https://github.com/micropython/micropython/tree/master/drivers/sdcard
