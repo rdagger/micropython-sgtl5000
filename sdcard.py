@@ -4,19 +4,12 @@ MicroPython driver for SD cards using SPI bus.
 Requires an SPI bus and a CS pin.  Provides readblocks and writeblocks
 methods so the device can be mounted as a filesystem.
 
-Example usage on pyboard:
+This is a temporary subsitute for the machine.SDCard class,
+which I was unable to get working on the Teensy 4.0.  The
+machine.SDCard class does work for Teensy 4.1
 
-    import pyb, sdcard, os
-    sd = sdcard.SDCard(pyb.SPI(1), pyb.Pin.board.X5)
-    pyb.mount(sd, '/sd2')
-    os.listdir('/')
-
-Example usage on ESP8266:
-
-    import machine, sdcard, os
-    sd = sdcard.SDCard(machine.SPI(1), machine.Pin(15))
-    os.mount(sd, '/sd')
-    os.listdir('/')
+MicroPython source for sdcard.py:
+https://github.com/micropython/micropython/tree/master/drivers/sdcard
 
 """
 
