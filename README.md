@@ -3,7 +3,7 @@ MicroPython library for [SGTL5000](https://www.nxp.com/docs/en/data-sheet/SGTL50
 
 THIS LIBRARY IS UNDER DEVELOPMENT.
 
-Currently working on Teensy 4.0 / 4.1 using [Mike Teachman's firmare](https://github.com/miketeachman/micropython-i2s-examples/tree/mimxrt/teensy_audio_shield).
+Currently working on Teensy 4.0 / 4.1 using [Mike Teachman's firmware](https://github.com/miketeachman/micropython-i2s-examples/tree/mimxrt/teensy_audio_shield).
 
 Designed primarily for [Teensy Audio Adapter](https://www.pjrc.com/store/teensy3_audio.html).
 
