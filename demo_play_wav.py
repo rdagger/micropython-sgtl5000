@@ -19,6 +19,7 @@ from sdcard import SDCard
 
 spisd = SPI(0)
 sd = SDCard(spisd, Pin(10))  # Teensy audio adapter SD slot
+# sd = SDCard(1)  # Teensy 4.1: sck=45, mosi=43, miso=42, cs=44
 os.mount(sd, "/sd")
 
 # ======= I2S CONFIGURATION =======
