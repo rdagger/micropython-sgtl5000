@@ -1,5 +1,5 @@
 # micropython-sgtl5000
-MicroPython library for SGTL5000
+MicroPython library for [SGTL5000](https://www.nxp.com/docs/en/data-sheet/SGTL5000.pdf) Low Power Stereo Codec w/ Headphone Amp
 
 THIS LIBRARY IS UNDER DEVELOPMENT.
 
