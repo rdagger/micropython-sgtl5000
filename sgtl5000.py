@@ -15,7 +15,7 @@ I2S Conventions
 """
 from math import cos, pi, sin, sqrt
 from micropython import const  # type: ignore
-from time import sleep
+from time import sleep, sleep_ms
 
 
 class CODEC:
@@ -542,26 +542,36 @@ class CODEC:
         # VDDD is externally driven with 1.8V
         self.write_word(self.CHIP_ANA_POWER, 0x4060)
         # VDDA & VDDIO both over 3.1V
-        self.write_word(self.CHIP_LINREG_CTRL, 0x6C)
+        self.write_word(self.CHIP_LINREG_CTRL, 0x006C)
         # VAG=1.575, normal ramp, +12.5% bias current
         self. write_word(self.CHIP_REF_CTRL, 0x01F2)
         # LO_VAGCNTRL=1.65V, OUT_CURRENT=0.54mA
         self.write_word(self.CHIP_LINE_OUT_CTRL, 0x0F22)
         # Allow up to 125mA
         self.write_word(self.CHIP_SHORT_CTRL, 0x4446)
-        # Mute line out, head phone out & ADC
-        self.analog_ctrl = 0x0137
-        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
-        sleep(.1)
         # SGTL is I2S Slave (power up: lineout, hp, adc, dac)
         self.write_word(self.CHIP_ANA_POWER, 0x40FF)
         # Power up all digital stuff
-        self.write_word(self.CHIP_DIG_POWER, 0x73)
-        sleep(.1)
+        self.write_word(self.CHIP_DIG_POWER, 0x0073)
+        sleep_ms(400)
         # Default approx 1.3 volts peak-to-peak
         self.write_word(self.CHIP_LINE_OUT_VOL, 0x1D1D)
-
-        # *** Probably need additional configuration code ***
+        # Fs=44.1 kHz, Fmclk=256*Fs
+        self.write_word(self.CHIP_CLK_CTRL, 0x0004)
+        # Fsclk=Fs*64, 32bit samples, I2S format (data length)
+        self.write_word(self.CHIP_I2S_CTRL, 0x0030)
+        # ADC->I2S, I2S->DAC
+        self.write_word(self.CHIP_SSS_CTRL, 0x0010)
+        # Unmute DAC, ADC normal operations, disable volume ramp
+        self.adc_dac_ctrl = 0x0000
+        self.write_word(self.CHIP_ADCDAC_CTRL, self.adc_dac_ctrl)
+        # Digital gain, 0dB
+        self.write_word(self.CHIP_DAC_VOL, 0x3C3C)
+        # Set volume (lowest level)
+        self.write_word(self.CHIP_ANA_HP_CTRL, 0x7F7F)
+        # Enable & mute headphone output, select & unmute line in & enable ZCD
+        self.analog_ctrl = 0x0036
+        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
 
     def adc_high_pass_filter(self, enable=True, freeze=False):
         """Enable or disable the ADC high-pass filter.
@@ -846,9 +856,9 @@ class CODEC:
             raise ValueError("Invalid headphone input value.")
 
         if input == self.AUDIO_HEADPHONE_DAC:
-            self.analog_ctrl |= (1 << 6)
-        elif input == self.AUDIO_HEADPHONE_LINEIN:
             self.analog_ctrl &= ~(1 << 6)
+        elif input == self.AUDIO_HEADPHONE_LINEIN:
+            self.analog_ctrl |= (1 << 6)
         self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
 
     def input_select(self, input):
