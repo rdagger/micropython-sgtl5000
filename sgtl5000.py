@@ -911,32 +911,18 @@ class CODEC:
     def lineout_level(self, left, right):
         """Set left and right channel lineout level.
         Args:
-            left (int): left channel level 13 - 31
-            right (int): right channel level 13-31
+            left (int): left channel level
+            right (int): right channel level
         Notes:
-            Actual measured full-scale peak-to-peak sine wave output voltage:
-            0-12: output has clipping
-            13: 3.16 Volts p-p
-            14: 2.98 Volts p-p
-            15: 2.83 Volts p-p
-            16: 2.67 Volts p-p
-            17: 2.53 Volts p-p
-            18: 2.39 Volts p-p
-            19: 2.26 Volts p-p
-            20: 2.14 Volts p-p
-            21: 2.02 Volts p-p
-            22: 1.91 Volts p-p
-            23: 1.80 Volts p-p
-            24: 1.71 Volts p-p
-            25: 1.62 Volts p-p
-            26: 1.53 Volts p-p
-            27: 1.44 Volts p-p
-            28: 1.37 Volts p-p
-            29: 1.29 Volts p-p
-            30: 1.22 Volts p-p
-            31: 1.16 Volts p-p
+            Controls the line out volume in 0.5 dB steps. Higher codes have more attenuation.
+            Used to normalize the output level to full scale based on the values used to set
+            LINE_OUT_CTRL -> LO_VAGCNTRL and CHIP_REF_CTRL -> VAG_VAL.
+            In general this field should be set to:
+            40*log((VAG_VAL)/(LO_VAGCNTRL)) + 15
+            After setting to the nominal voltage, this field can be used to adjust the output
+            level in +/-0.5 dB increments by using values higher or lower than the nominal setting.
             """
-        if not 13 <= left <= 31 and not 13 <= right <= 31:
+        if not 0 <= left <= 31 and not 0 <= right <= 31:
             raise ValueError("Invalid lineout level values.")
         self.write_word(self.CHIP_LINE_OUT_VOL, (right << 8) | left)
 

@@ -1,17 +1,3 @@
-# The MIT License (MIT)
-# Copyright (c) 2022 Mike Teachman
-# https://opensource.org/licenses/MIT
-
-# Purpose:  Play a WAV audio file out of a speaker or headphones
-#
-# - read audio samples from a WAV file on SD Card
-# - write audio samples to an I2S amplifier or DAC module
-# - the WAV file will play continuously in a loop until
-#   a keyboard interrupt is detected or the board is reset
-#
-# blocking version
-# - the write() method blocks until the entire sample buffer is written to the I2S interface
-
 import os
 from machine import I2C, I2S, Pin, SPI  # type: ignore
 from sgtl5000 import CODEC
@@ -55,9 +41,9 @@ i2c = I2C(0, freq=400000)
 codec = CODEC(0x0A, i2c)
 codec.mute_dac(False)
 codec.dac_volume(0.9, 0.9)
-codec.headphone_select(0)
-codec.mute_headphone(False)
-codec.volume(0.7, 0.7)
+codec.headphone_select(codec.AUDIO_HEADPHONE_DAC)
+codec.mute_headphone(True)
+codec.mute_lineout(False)
 
 wav = open("/sd/{}".format(WAV_FILE), "rb")
 _ = wav.seek(44)  # advance to first byte of Data section in WAV file
@@ -70,6 +56,7 @@ wav_samples_mv = memoryview(wav_samples)
 # continuously read audio samples from the WAV file
 # and write them to an I2S DAC
 print("==========  START PLAYBACK ==========")
+
 try:
     while True:
         num_read = wav.readinto(wav_samples_mv)
@@ -85,6 +72,7 @@ except (KeyboardInterrupt, Exception) as e:
 # cleanup
 wav.close()
 os.umount("/sd")
-sd.deinit()
+# sd.deinit()
+spisd.deinit()
 audio_out.deinit()
 print("Done")
