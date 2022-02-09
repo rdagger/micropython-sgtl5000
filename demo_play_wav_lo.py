@@ -40,10 +40,11 @@ audio_out = I2S(
 i2c = I2C(0, freq=400000)
 codec = CODEC(0x0A, i2c)
 codec.mute_dac(False)
-codec.dac_volume(0.9, 0.9)
+codec.dac_volume(1, 1)
 codec.headphone_select(codec.AUDIO_HEADPHONE_DAC)
 codec.mute_headphone(True)
 codec.mute_lineout(False)
+codec.lineout_level(4, 4)
 
 wav = open("/sd/{}".format(WAV_FILE), "rb")
 _ = wav.seek(44)  # advance to first byte of Data section in WAV file
@@ -64,8 +65,10 @@ try:
         if num_read == 0:
             # end-of-file, advance to first byte of Data section
             _ = wav.seek(44)
+            print("loop restarting")
         else:
             _ = audio_out.write(wav_samples_mv[:num_read])
+        
 except (KeyboardInterrupt, Exception) as e:
     print("caught exception {} {}".format(type(e).__name__, e))
 
