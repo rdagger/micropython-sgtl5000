@@ -1,3 +1,4 @@
+"""Demo play WAV from SD to headphones."""
 # The MIT License (MIT)
 # Copyright (c) 2022 Mike Teachman
 # https://opensource.org/licenses/MIT
@@ -10,15 +11,17 @@
 #   a keyboard interrupt is detected or the board is reset
 #
 # blocking version
-# - the write() method blocks until the entire sample buffer is written to the I2S interface
+# - the write() method blocks until the entire sample buffer is written
+# to the I2S interface
 
 import os
 from machine import I2C, I2S, Pin, SPI  # type: ignore
+# from machine import SDCard  # Teensy 4.1 Built-in SD Card
+from sdcard import SDCard  # Teensy 4.0 Audio adapter SD Card
 from sgtl5000 import CODEC
-from sdcard import SDCard
 
 spisd = SPI(0)
-sd = SDCard(spisd, Pin(10))  # Teensy audio adapter SD slot
+sd = SDCard(spisd, Pin(10))  # Teensy 4.0 Audio adapter SD Card
 # sd = SDCard(1)  # Teensy 4.1: sck=45, mosi=43, miso=42, cs=44
 os.mount(sd, "/sd")
 
@@ -85,7 +88,7 @@ except (KeyboardInterrupt, Exception) as e:
 # cleanup
 wav.close()
 os.umount("/sd")
-# sd.deinit()
-spisd.deinit()
+# sd.deinit()  # Teensy 4.1 Built-in SD Card
+spisd.deinit()  # Teensy 4.0 Audio adapter SD Card
 audio_out.deinit()
 print("Done")

@@ -15,7 +15,7 @@ I2S Conventions
 """
 from math import cos, pi, sin, sqrt
 from micropython import const  # type: ignore
-from time import sleep, sleep_ms
+from time import sleep_ms
 
 
 class CODEC:
@@ -871,17 +871,17 @@ class CODEC:
 
         if input == self.AUDIO_INPUT_LINEIN:
             self.write_word(self.CHIP_ANA_ADC_CTRL, 0x55)
-            self.analog_ctrl |= (1 << 2)
+            self.analog_ctrl |= (1 << 2)  # ADC Input = LineIn
             self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
 
         elif input == self.AUDIO_INPUT_MIC:
             self.write_word(self.CHIP_ANA_ADC_CTRL, 0x88)
-            self.analog_ctrl &= ~(1 << 2)
+            self.analog_ctrl &= ~(1 << 2)  # ADC Input = Mic
             self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
             self.write_word(self.CHIP_MIC_CTRL, 0x173)
 
     def linein_level(self, left, right):
-        """Set left and right channel linein level.
+        """Set left and right channel ADC level.
         Args:
             left (int): left channel level 0 - 15
             right (int): right channel level 0 - 15
@@ -958,6 +958,17 @@ class CODEC:
         old_data = self.read_word(cmd)
         data = (old_data & ~mask) | data
         self.write_word(cmd, data)
+
+
+    def mute_adc(self, mute=True):
+        """Mute or unmute the ADC.
+        Args:
+            mute (bool): True=Mute (default), False=Unmute"""
+        if mute:
+            self.analog_ctrl |= 1
+        else:
+            self.analog_ctrl &= ~1
+        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
 
     def mute_dac(self, mute=True):
         """Mute or unmute the left and right DAC channels.
