@@ -4,14 +4,19 @@ MicroPython driver for SD cards using SPI bus.
 Requires an SPI bus and a CS pin.  Provides readblocks and writeblocks
 methods so the device can be mounted as a filesystem.
 
-This is a temporary subsitute for the machine.SDCard class on Teensy 4.0.
-Currently the machine.SDCard works with the uSDHC peripheral of the
-i.MXRT controller. It does not support SD Card access via SPI so far.
-This library is only necessary for the Teensy 4.0.  The
-machine.SDCard class does work for Teensy 4.1's built-in SD Card.
+Example usage on pyboard:
 
-MicroPython source for sdcard.py:
-https://github.com/micropython/micropython/tree/master/drivers/sdcard
+    import pyb, sdcard, os
+    sd = sdcard.SDCard(pyb.SPI(1), pyb.Pin.board.X5)
+    pyb.mount(sd, '/sd2')
+    os.listdir('/')
+
+Example usage on ESP8266:
+
+    import machine, sdcard, os
+    sd = sdcard.SDCard(machine.SPI(1), machine.Pin(15))
+    os.mount(sd, '/sd')
+    os.listdir('/')
 
 """
 
@@ -34,7 +39,7 @@ _TOKEN_DATA = const(0xFE)
 
 
 class SDCard:
-    def __init__(self, spi, cs):
+    def __init__(self, spi, cs, baudrate=1320000):
         self.spi = spi
         self.cs = cs
 
@@ -46,7 +51,7 @@ class SDCard:
         self.dummybuf_memoryview = memoryview(self.dummybuf)
 
         # initialise the card
-        self.init_card()
+        self.init_card(baudrate)
 
     def init_spi(self, baudrate):
         try:
@@ -58,7 +63,8 @@ class SDCard:
             # on pyboard
             self.spi.init(master, baudrate=baudrate, phase=0, polarity=0)
 
-    def init_card(self):
+    def init_card(self, baudrate):
+
         # init CS pin
         self.cs.init(self.cs.OUT, value=1)
 
@@ -106,7 +112,7 @@ class SDCard:
             raise OSError("can't set 512 block size")
 
         # set to high data rate now that it's initialised
-        self.init_spi(1320000)
+        self.init_spi(baudrate)
 
     def init_card_v1(self):
         for i in range(_CMD_TIMEOUT):

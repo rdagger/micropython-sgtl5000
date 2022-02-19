@@ -5,8 +5,15 @@ from machine import I2C, I2S, Pin, SPI  # type: ignore
 from sdcard import SDCard  # Teensy 4.0 Audio adapter SD Card
 from sgtl5000 import CODEC
 
-spisd = SPI(0)
-sd = SDCard(spisd, Pin(10))  # Teensy 4.0 Audio adapter SD Card
+spisd = SPI(0, baudrate=40000000)
+""" SD Card baudrate should be set on SD Card class:
+Class 10 = 10 MHz
+Class 6  =  6 MHz
+Class 4  =  4 MHz
+Class 2  =  2 MHz
+Probably need a minimum of Class 6 depending on recording setttings
+"""
+sd = SDCard(spisd, Pin(10), baudrate=4000000)  # Teensy 4.0 Audio SD Card
 # sd = SDCard(1)  # Teensy 4.1: sck=45, mosi=43, miso=42, cs=44
 os.mount(sd, "/sd")
 
