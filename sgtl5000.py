@@ -519,7 +519,7 @@ class CODEC:
     AUDIO_HEADPHONE_DAC = const(0)
     AUDIO_HEADPHONE_LINEIN = const(1)
 
-    def __init__(self, address, i2c, mclk=11289600, fs=1):
+    def __init__(self, address, i2c, mclk=11289600, mclk_mode=0, fs=1):
         """Constructor for SGTL5000.
 
         Args:
@@ -531,6 +531,11 @@ class CODEC:
                       1=44.1 kHz Default
                       2=48 kHz
                       3=96 kHz
+            mclk_mode: Ratio MCLK/fs
+                      0=fs * 256
+                      1=fs * 384
+                      2=fs * 512
+                      3=Use PLL
         Note:
             mclk (11.2896 MHz) = fs (44.1K) * 256
         """
@@ -556,8 +561,26 @@ class CODEC:
         sleep_ms(400)
         # Default approx 1.3 volts peak-to-peak
         self.write_word(self.CHIP_LINE_OUT_VOL, 0x1D1D)
-        # Fs=44.1 kHz, Fmclk=256*Fs
-        self.write_word(self.CHIP_CLK_CTRL, 0x0004)
+        if mclk_mode == 3: # Freqency from PLL
+            # Configure the PLL
+            # fs=44.1 kHz, Fclk defined by mclk, use PLL
+            if fs == 1: #  44.1 kHz
+                PLL_output_freq = 180_633_600
+            else:
+                PLL_output_freq = 196_608_000
+            if mclk > 17_000_000:
+                # divide the input clock by 2
+                self.write_word(self.CHIP_CLK_TOP_CTRL, 0x0008)
+                mclk //=  2
+            # Enable the PLL as well.
+            int_divisor = PLL_output_freq // mclk
+            frac_divisor = (PLL_output_freq * 2048) // mclk) - int_divisor * 2048
+            self.write_word(self.CHIP_PLL_CTRL, (int_divisor << 11) | (frac_divisor & 0x3ff))
+            self.write_word(self.CHIP_ANA_POWER, 0x45FF)
+            self.write_word(self.CHIP_CLK_CTRL, 0x0007)
+        else:
+            # Fs=44.1 kHz, Fmclk=256*Fs
+            self.write_word(self.CHIP_CLK_CTRL, 0x0004)
         # Fsclk=Fs*64, 32bit samples, I2S format (data length)
         self.write_word(self.CHIP_I2S_CTRL, 0x0030)
         # ADC->I2S, I2S->DAC
