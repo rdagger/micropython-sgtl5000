@@ -577,10 +577,10 @@ class CODEC:
             frac_divisor = (PLL_output_freq * 2048) // mclk) - int_divisor * 2048
             self.write_word(self.CHIP_PLL_CTRL, (int_divisor << 11) | (frac_divisor & 0x3ff))
             self.write_word(self.CHIP_ANA_POWER, 0x45FF)
-            self.write_word(self.CHIP_CLK_CTRL, 0x0007)
+            self.write_word(self.CHIP_CLK_CTRL, 0x0003 | fs << 2)
         else:
             # Fs=44.1 kHz, Fmclk=256*Fs
-            self.write_word(self.CHIP_CLK_CTRL, 0x0004)
+            self.write_word(self.CHIP_CLK_CTRL, 0x0000 | fs << 2)
         # Fsclk=Fs*64, 32bit samples, I2S format (data length)
         self.write_word(self.CHIP_I2S_CTRL, 0x0030)
         # ADC->I2S, I2S->DAC
