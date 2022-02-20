@@ -531,13 +531,13 @@ class CODEC:
         48000: (2, 0),
     }
 
-    def __init__(self, address, i2c, mclk=11289600, mclk_mode=0, sample_rate=44100):
+    def __init__(self, address, i2c, mclk_freq=11289600, mclk_mode=0, sample_rate=44100):
         """Constructor for SGTL5000.
 
         Args:
             address(byte): Device I²C address (0x20 or 0x21)
             i2c (Class I2C):  I²C interface (Python & MicroPython compatible)
-            mclk (int): Master clock frequency 11.2896 MHz Default
+            mclk_freq (int): Master clock frequency 11.2896 MHz Default
             sample_rate: Sampling frequency
                       8000, 10050, 12000, 16000, 22050, 24000, 32000, 44100 or 48000
             mclk_mode: Ratio MCLK/fs
@@ -546,12 +546,12 @@ class CODEC:
                       2=fs * 512
                       3=Use PLL
         Note:
-            mclk (11.2896 MHz) = fs (44.1K) * 256
+            mclk_freq (11.2896 MHz) = fs (44.1K) * 256
         """
         try:
             sys_fs, rate_mode = self.sample_rate_table[sample_rate]
         except KeyError:
-            raise ValueError("Invalid sampling frequency value.")
+            raise ValueError("Invalid sample_rate value.")
 
         self.i2c = i2c
         self.address = address
@@ -580,13 +580,13 @@ class CODEC:
                 PLL_output_freq = 180_633_600
             else:
                 PLL_output_freq = 196_608_000
-            if mclk > 17_000_000:
+            if mclk_freq > 17_000_000:
                 # divide the input clock by 2
                 self.write_word(self.CHIP_CLK_TOP_CTRL, 0x0008)
-                mclk //=  2
+                mclk_freq //=  2
             # Enable the PLL as well.
-            int_divisor = PLL_output_freq // mclk
-            frac_divisor = (PLL_output_freq * 2048) // mclk - int_divisor * 2048
+            int_divisor = PLL_output_freq // mclk_freq
+            frac_divisor = (PLL_output_freq * 2048) // mclk_freq - int_divisor * 2048
             self.write_word(self.CHIP_PLL_CTRL, (int_divisor << 11) | (frac_divisor & 0x3ff))
             self.write_word(self.CHIP_ANA_POWER, 0x45FF)
         elif mclk_mode == 0 and rate_mode != 0:
@@ -607,6 +607,17 @@ class CODEC:
         # Enable & mute headphone output, select & unmute line in & enable ZCD
         self.analog_ctrl = 0x0036
         self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
+
+    def deinit(self):
+        """Deinit the codec. This function must be called before deinit'ing the
+        I2S Audio module and/or the PWM generating mclk."""
+        # switch MCLK mode back to mode 0
+        self.write_word(self.CHIP_CLK_CTRL, 0x0004)
+        # disable output and PLL
+        self.modify_word(self.CHIP_ANA_POWER, 0, 0x0511)
+        # disable all digital power devices
+        self.write_word(self.CHIP_DIG_POWER, 0x0000)
+        sleep_ms(10)
 
     def adc_high_pass_filter(self, enable=True, freeze=False):
         """Enable or disable the ADC high-pass filter.
