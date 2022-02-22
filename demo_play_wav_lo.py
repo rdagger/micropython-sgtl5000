@@ -6,7 +6,7 @@ from sdcard import SDCard  # Teensy 4.0 Audio adapter SD Card
 from sgtl5000 import CODEC
 
 spisd = SPI(0)
-sd = SDCard(spisd, Pin(10))  # Teensy 4.0 Audio adapter SD Card
+sd = SDCard(spisd, Pin(10), baudrate=10000000)  # Teensy 4.0 Audio SD Card
 # sd = SDCard(1)  # Teensy 4.1: sck=45, mosi=43, miso=42, cs=44
 os.mount(sd, "/sd")
 
@@ -16,14 +16,14 @@ WS_PIN = 20
 SD_PIN = 7
 MCK_PIN = 23
 I2S_ID = 1
-BUFFER_LENGTH_IN_BYTES = 40000
+BUFFER_LENGTH_IN_BYTES = 80000
 # ======= I2S CONFIGURATION =======
 
 # ======= AUDIO CONFIGURATION =======
-WAV_FILE = "wav_music-16k-16bits-stereo.wav"
+WAV_FILE = "wav_music-44k-16bits-stereo.wav"
 WAV_SAMPLE_SIZE_IN_BITS = 16
 FORMAT = I2S.STEREO
-SAMPLE_RATE_IN_HZ = 16000
+SAMPLE_RATE_IN_HZ = 44100
 # ======= AUDIO CONFIGURATION =======
 
 audio_out = I2S(
@@ -79,5 +79,6 @@ wav.close()
 os.umount("/sd")
 # sd.deinit()  # Teensy 4.1 Built-in SD Card
 spisd.deinit()  # Teensy 4.0 Audio adapter SD Card
+codec.deinit()
 audio_out.deinit()
 print("Done")

@@ -102,10 +102,13 @@ audio_in = I2S(
 # configure the SGTL5000 codec
 i2c = I2C(0, freq=400000)
 codec = CODEC(0x0A, i2c)
+codec.vag_ramp(slow=True)  # Minimize Pop
 codec.mute_dac(True)
-codec.mute_headphone(True)
-codec.input_select(codec.AUDIO_INPUT_MIC)
+codec.headphone_select(codec.AUDIO_HEADPHONE_LINEIN)  # Line In to headphones
+codec.input_select(codec.AUDIO_INPUT_MIC)  # Recording input to microphone
 codec.mic_gain(20)
+codec.mute_headphone(False)  # Enable headphone monitoring while recording
+codec.volume(0.8, 0.8)  # Set headphone volume
 
 # allocate sample arrays
 # memoryview used to reduce heap allocation in while loop
@@ -137,5 +140,6 @@ wav.close()
 os.umount("/sd")
 # sd.deinit()  # Teensy 4.1 Built-in SD Card
 spisd.deinit()  # Teensy 4.0 Audio adapter SD Card
+codec.deinit()
 audio_in.deinit()
 print("Done")

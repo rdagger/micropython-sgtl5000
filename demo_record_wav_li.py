@@ -13,7 +13,7 @@ Class 4  =  4 MHz
 Class 2  =  2 MHz
 Probably need a minimum of Class 6 depending on recording setttings
 """
-sd = SDCard(spisd, Pin(10), baudrate=4000000)  # Teensy 4.0 Audio SD Card
+sd = SDCard(spisd, Pin(10), baudrate=10000000)  # Teensy 4.0 Audio SD Card
 # sd = SDCard(1)  # Teensy 4.1: sck=45, mosi=43, miso=42, cs=44
 os.mount(sd, "/sd")
 
@@ -90,13 +90,13 @@ audio_in = I2S(
 # configure the SGTL5000 codec
 i2c = I2C(0, freq=400000)
 codec = CODEC(0x0A, i2c)
+codec.vag_ramp(slow=True)  # Minimize Pop
 codec.mute_dac(True)
 codec.headphone_select(codec.AUDIO_HEADPHONE_LINEIN)  # Line In to headphones
-codec.mute_headphone(False)  # Enable headphone monitoring while recording
-codec.volume(0.8, 0.8)  # Set headphone volume
 codec.input_select(codec.AUDIO_INPUT_LINEIN)  # Recording input to Line In
 codec.linein_level(15, 15)  # Maximum Line In levels
-codec.audio_processor(enable=False, pre=False)  # Disable Audio Processor
+codec.mute_headphone(False)  # Enable headphone monitoring while recording
+codec.volume(0.8, 0.8)  # Set headphone volume
 
 # allocate sample arrays
 # memoryview used to reduce heap allocation in while loop
@@ -107,6 +107,7 @@ num_sample_bytes_written_to_wav = 0
 
 print("Recording size: {} bytes".format(RECORDING_SIZE_IN_BYTES))
 print("==========  START RECORDING ==========")
+
 try:
     while num_sample_bytes_written_to_wav < RECORDING_SIZE_IN_BYTES:
         # read a block of samples from the I2S microphone
@@ -128,5 +129,6 @@ wav.close()
 os.umount("/sd")
 # sd.deinit()  # Teensy 4.1 Built-in SD Card
 spisd.deinit()  # Teensy 4.0 Audio adapter SD Card
+codec.deinit()
 audio_in.deinit()
 print("Done")

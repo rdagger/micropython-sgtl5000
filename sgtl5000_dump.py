@@ -3,7 +3,12 @@ from collections import OrderedDict
 
 
 class DUMP:
-    """SGTL5000 register dump"""
+    """SGTL5000 register dump.
+    
+    Usage:
+        from sgtl5000_dump import DUMP
+        dump = DUMP(codec)
+        dump.print_all()"""
 
     def __init__(self, codec):
         """Constructor for SGTL5000 register dump.

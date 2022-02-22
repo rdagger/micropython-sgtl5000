@@ -15,7 +15,7 @@
 # to the I2S interface
 
 import os
-from machine import I2C, I2S, Pin, SPI  # type: ignore
+from machine import I2C, I2S, Pin, PWM, SPI  # type: ignore
 # from machine import SDCard  # Teensy 4.1 Built-in SD Card
 from sdcard import SDCard  # Teensy 4.0 Audio adapter SD Card
 from sgtl5000 import CODEC
@@ -25,26 +25,28 @@ sd = SDCard(spisd, Pin(10), baudrate=10000000)  # Teensy 4.0 Audio SD Card
 # sd = SDCard(1)  # Teensy 4.1: sck=45, mosi=43, miso=42, cs=44
 os.mount(sd, "/sd")
 
+# ======= PWM Configuration =======
+MCK_PIN = 23
+mclk=PWM(MCK_PIN, 10000000)
+
 # ======= I2S CONFIGURATION =======
 SCK_PIN = 21
 WS_PIN = 20
 SD_PIN = 7
-MCK_PIN = 23
 I2S_ID = 1
-BUFFER_LENGTH_IN_BYTES = 80000
+BUFFER_LENGTH_IN_BYTES = 40000
 
 # ======= AUDIO CONFIGURATION =======
-WAV_FILE = "wav_music-44k-16bits-stereo.wav"
+WAV_FILE = "wav_music-16k-16bits-stereo.wav"
 WAV_SAMPLE_SIZE_IN_BITS = 16
 FORMAT = I2S.STEREO
-SAMPLE_RATE_IN_HZ = 44100
+SAMPLE_RATE_IN_HZ = 16000
 
 audio_out = I2S(
     I2S_ID,
     sck=Pin(SCK_PIN),
     ws=Pin(WS_PIN),
     sd=Pin(SD_PIN),
-    mck=Pin(MCK_PIN),
     mode=I2S.TX,
     bits=WAV_SAMPLE_SIZE_IN_BITS,
     format=FORMAT,
@@ -53,7 +55,7 @@ audio_out = I2S(
 )
 
 i2c = I2C(0, freq=400000)
-codec = CODEC(0x0A, i2c)
+codec = CODEC(0x0A, i2c, mclk_freq=10000000, mclk_mode=3, sample_rate=16000)
 codec.mute_dac(False)
 codec.dac_volume(0.9, 0.9)
 codec.headphone_select(codec.AUDIO_HEADPHONE_DAC)
@@ -90,4 +92,5 @@ os.umount("/sd")
 spisd.deinit()  # Teensy 4.0 Audio adapter SD Card
 codec.deinit()
 audio_out.deinit()
+mclk.deinit()
 print("Done")

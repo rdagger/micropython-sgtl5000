@@ -1163,6 +1163,20 @@ class CODEC:
             raise ValueError("Invalid width value.")
         self.write_word(self.DAP_SGTL_SURROUND, (width << 4) | select)
 
+    def vag_ramp(self, slow=False):
+        """Set VAG ramp control.
+        Args:
+            slow (bool): True=Slow, False=Normal (default)
+        Notes:
+            Setting this bit slows down the VAG ramp from ~200 to ~400 ms to reduce
+            the startup pop, but increases the turn on/off time."""
+        chip_ref_ctrl= self.read_word(self.CHIP_REF_CTRL)
+        if slow:
+            chip_ref_ctrl |= 1
+        else:
+            chip_ref_ctrl &= ~1
+        self.write_word(self.CHIP_REF_CTRL, chip_ref_ctrl)
+
     def volume(self, left, right):
         """Set headphone left and right channel volume.
         Args:
