@@ -1,19 +1,4 @@
-"""Demo play WAV from SD to headphones."""
-# The MIT License (MIT)
-# Copyright (c) 2022 Mike Teachman
-# https://opensource.org/licenses/MIT
-
-# Purpose:  Play a WAV audio file out of a speaker or headphones
-#
-# - read audio samples from a WAV file on SD Card
-# - write audio samples to an I2S amplifier or DAC module
-# - the WAV file will play continuously in a loop until
-#   a keyboard interrupt is detected or the board is reset
-#
-# blocking version
-# - the write() method blocks until the entire sample buffer is written
-# to the I2S interface
-
+"""Demo play WAV from SD to headphones using 16K sample rate."""
 import os
 from machine import I2C, I2S, Pin, PWM, SPI  # type: ignore
 # from machine import SDCard  # Teensy 4.1 Built-in SD Card
