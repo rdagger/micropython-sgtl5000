@@ -1,4 +1,4 @@
-"""Demo all SGTL5000 registers to console for debugging."""
+"""Demo to dump all SGTL5000 registers to console for debugging."""
 import os
 from machine import I2C, I2S, Pin  # type: ignore
 from sgtl5000 import CODEC
