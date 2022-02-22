@@ -123,7 +123,7 @@ print("Recording size: {} bytes".format(RECORDING_SIZE_IN_BYTES))
 print("==========  START RECORDING ==========")
 try:
     while num_sample_bytes_written_to_wav < RECORDING_SIZE_IN_BYTES:
-        # read a block of samples from the I2S microphone
+        # read a block of samples from the SGTL5000 I2S output
         num_bytes_read_from_mic = audio_in.readinto(mic_samples_mv)
         if num_bytes_read_from_mic > 0:
             num_bytes_to_write = min(
