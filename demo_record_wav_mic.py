@@ -23,9 +23,15 @@ from machine import I2C, I2S, Pin, SPI  # type: ignore
 from sdcard import SDCard  # Teensy 4.0 Audio adapter SD Card
 from sgtl5000 import CODEC
 
-
 spisd = SPI(0)
-sd = SDCard(spisd, Pin(10))  # Teensy 4.0 Audio adapter SD Card
+
+""" SD Card baudrate should be set on SD Card class (Teensy 4.0 only):
+Class 10 = 10 MHz
+Class 6  =  6 MHz
+Class 4  =  4 MHz
+Class 2  =  2 MHz
+Probably need a minimum of Class 6 depending on recording setttings"""
+sd = SDCard(spisd, Pin(10), baudrate=10000000)  # Teensy 4.0 Audio SD Card
 # sd = SDCard(1)  # Teensy 4.1: sck=45, mosi=43, miso=42, cs=44
 os.mount(sd, "/sd")
 
@@ -36,7 +42,6 @@ SD_PIN = 8
 MCK_PIN = 23
 I2S_ID = 1
 BUFFER_LENGTH_IN_BYTES = 100000
-# ======= I2S CONFIGURATION =======
 
 # ======= AUDIO CONFIGURATION =======
 WAV_FILE = "mic.wav"
@@ -44,7 +49,6 @@ RECORD_TIME_IN_SECONDS = 10
 WAV_SAMPLE_SIZE_IN_BITS = 16
 FORMAT = I2S.MONO
 SAMPLE_RATE_IN_HZ = 44100
-# ======= AUDIO CONFIGURATION =======
 
 format_to_channels = {I2S.MONO: 1, I2S.STEREO: 2}
 NUM_CHANNELS = format_to_channels[FORMAT]
@@ -52,7 +56,6 @@ WAV_SAMPLE_SIZE_IN_BYTES = WAV_SAMPLE_SIZE_IN_BITS // 8
 RECORDING_SIZE_IN_BYTES = (
     RECORD_TIME_IN_SECONDS * SAMPLE_RATE_IN_HZ * WAV_SAMPLE_SIZE_IN_BYTES * NUM_CHANNELS
 )
-
 
 def create_wav_header(sampleRate, bitsPerSample, num_channels, num_samples):
     """Generate WAV file header."""
@@ -73,7 +76,6 @@ def create_wav_header(sampleRate, bitsPerSample, num_channels, num_samples):
     o += bytes("data", "ascii")  # (4byte) Data Chunk Marker
     o += (datasize).to_bytes(4, "little")  # (4byte) Data size in bytes
     return o
-
 
 wav = open("/sd/{}".format(WAV_FILE), "wb")
 
