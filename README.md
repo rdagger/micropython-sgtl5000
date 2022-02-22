@@ -1,7 +1,7 @@
 # micropython-sgtl5000
 MicroPython library for [SGTL5000](https://www.nxp.com/docs/en/data-sheet/SGTL5000.pdf) Low Power Stereo Codec w/ Headphone Amp
 
-THIS LIBRARY IS UNDER DEVELOPMENT.
+See demos for usage.
 
 Currently working on Teensy 4.0 / 4.1 using [Mike Teachman's firmware](https://github.com/miketeachman/micropython-i2s-examples/tree/mimxrt/teensy_audio_shield).
 
