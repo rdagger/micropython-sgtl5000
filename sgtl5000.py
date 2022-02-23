@@ -497,7 +497,7 @@ class CODEC:
     DAP_COEF_WR_A2_LSB = const(0x013A)
 
     SGTL5000_I2C_ADDR_CS_LOW = const(0x0A)  # CTRL_ADR0_CS pin low (normal)
-    SGTL5000_I2C_ADDR_CS_HIGH = const(0x2A)  # CTRL_ADR0_CS  pin high
+     SGTL5000_I2C_ADDR_CS_HIGH = const(0x2A)  # CTRL_ADR0_CS  pin high
 
     # Filter Types
     FILTER_LOPASS = const(0x0)
@@ -587,7 +587,7 @@ class CODEC:
             # Enable the PLL as well.
             int_divisor = PLL_output_freq // mclk_freq
             frac_divisor = (PLL_output_freq * 2048) // mclk_freq - int_divisor * 2048
-            self.write_word(self.CHIP_PLL_CTRL, (int_divisor << 11) | (frac_divisor & 0x3ff))
+            self.write_word(self.CHIP_PLL_CTRL, (int_divisor << 11) | (frac_divisor & 0x7ff))
             self.write_word(self.CHIP_ANA_POWER, 0x45FF)
         elif mclk_mode == 0 and rate_mode != 0:
             raise ValueError("Sampling frequency does not match mclk_mode")
