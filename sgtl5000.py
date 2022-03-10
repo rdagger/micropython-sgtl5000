@@ -553,70 +553,70 @@ class CODEC:
         except KeyError:
             raise ValueError("Invalid sample_rate value.")
 
-        self.i2c = i2c
-        self.address = address
+        self.regs = Regs(address, i2c)
 
         # VDDD is externally driven with 1.8V
-        self.write_word(self.CHIP_ANA_POWER, 0x4060)
+        self.regs[CHIP_ANA_POWER] = 0x4060
         # VDDA & VDDIO both over 3.1V
-        self.write_word(self.CHIP_LINREG_CTRL, 0x006C)
+        self.regs[CHIP_LINREG_CTRL] = 0x006C
         # VAG=1.575, normal ramp, +12.5% bias current
-        self. write_word(self.CHIP_REF_CTRL, 0x01F2)
+        self.regs[CHIP_REF_CTRL] = 0x01F2
         # LO_VAGCNTRL=1.65V, OUT_CURRENT=0.54mA
-        self.write_word(self.CHIP_LINE_OUT_CTRL, 0x0F22)
+        self.regs[CHIP_LINE_OUT_CTRL] = 0x0F22
         # Allow up to 125mA
-        self.write_word(self.CHIP_SHORT_CTRL, 0x4446)
+        self.regs[CHIP_SHORT_CTRL] = 0x4446
         # SGTL is I2S Slave (power up: lineout, hp, adc, dac)
-        self.write_word(self.CHIP_ANA_POWER, 0x40FF)
+        self.regs[CHIP_ANA_POWER] = 0x40FF
         # Power up all digital stuff
-        self.write_word(self.CHIP_DIG_POWER, 0x0073)
+        self.regs[CHIP_DIG_POWER] = 0x0073
         sleep_ms(400)
         # Default approx 1.3 volts peak-to-peak
-        self.write_word(self.CHIP_LINE_OUT_VOL, 0x1D1D)
-        if mclk_mode == 3: # Freqency from PLL
+        self.regs[CHIP_LINE_OUT_VOL] = 0x1D1D
+
+        if mclk_mode == 3: # Frequency from PLL
             # Configure the PLL
-            # fs=44.1 kHz, Fclk defined by mclk, use PLL
-            if sys_fs == 1: #  44.1 kHz
+            if sys_fs == 1: #  44.1, 22.05 or 11.025 kHz
                 PLL_output_freq = 180_633_600
             else:
                 PLL_output_freq = 196_608_000
             if mclk_freq > 17_000_000:
                 # divide the input clock by 2
-                self.write_word(self.CHIP_CLK_TOP_CTRL, 0x0008)
+                self.regs[CHIP_CLK_TOP_CTRL] = 0x0008
                 mclk_freq //=  2
-            # Enable the PLL as well.
+            # Calculate the PLL dividers and enable the PLL.
             int_divisor = PLL_output_freq // mclk_freq
             frac_divisor = (PLL_output_freq * 2048) // mclk_freq - int_divisor * 2048
-            self.write_word(self.CHIP_PLL_CTRL, (int_divisor << 11) | (frac_divisor & 0x7ff))
-            self.write_word(self.CHIP_ANA_POWER, 0x45FF)
+            self.regs[CHIP_PLL_CTRL] = (int_divisor << 11) | (frac_divisor & 0x7ff)
+            self.regs[CHIP_ANA_POWER] = 0x45FF
         elif mclk_mode == 0 and rate_mode != 0:
-            raise ValueError("Sampling frequency does not match mclk_mode")
+            raise ValueError("Sampling frequency too low for mclk_mode=0")
+
         # Set the Sysclk parameters
-        self.write_word(self.CHIP_CLK_CTRL, (rate_mode << 4) | (sys_fs << 2) | mclk_mode)
+        self.regs[CHIP_CLK_CTRL] = (rate_mode << 4) | (sys_fs << 2) | mclk_mode
         # Fsclk=Fs*64, 32bit samples, I2S format (data length)
-        self.write_word(self.CHIP_I2S_CTRL, 0x0030)
+        self.regs[CHIP_I2S_CTRL] = 0x0030
         # ADC->I2S, I2S->DAC
-        self.write_word(self.CHIP_SSS_CTRL, 0x0010)
+        self.regs[CHIP_SSS_CTRL] = 0x0010
         # Unmute DAC, ADC normal operations, disable volume ramp
         self.adc_dac_ctrl = 0x0000
-        self.write_word(self.CHIP_ADCDAC_CTRL, self.adc_dac_ctrl)
+        self.regs[CHIP_ADCDAC_CTRL] = self.adc_dac_ctrl
         # Digital gain, 0dB
-        self.write_word(self.CHIP_DAC_VOL, 0x3C3C)
+        self.regs[CHIP_DAC_VOL] = 0x3C3C
         # Set volume (lowest level)
-        self.write_word(self.CHIP_ANA_HP_CTRL, 0x7F7F)
+        self.regs[CHIP_ANA_HP_CTRL] = 0x7F7F
         # Enable & mute headphone output, select & unmute line in & enable ZCD
         self.analog_ctrl = 0x0036
-        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
+        self.regs[CHIP_ANA_CTRL] = self.analog_ctrl
 
     def deinit(self):
         """Deinit the codec. This function must be called before deinit'ing the
         I2S Audio module and/or the PWM generating mclk."""
         # switch MCLK mode back to mode 0
-        self.write_word(self.CHIP_CLK_CTRL, 0x0004)
+        self.regs[CHIP_CLK_CTRL] = 0x0004
         # disable output and PLL
-        self.modify_word(self.CHIP_ANA_POWER, 0, 0x0511)
+        self.regs[CHIP_ANA_POWER] = self.regs[CHIP_ANA_POWER] &  ~0x0511
         # disable all digital power devices
-        self.write_word(self.CHIP_DIG_POWER, 0x0000)
+        self.regs[CHIP_DIG_POWER] = 0x0000
         sleep_ms(10)
 
     def adc_high_pass_filter(self, enable=True, freeze=False):
@@ -633,7 +633,7 @@ class CODEC:
             self.adc_dac_ctrl = (self.adc_dac_ctrl & ~3) | 2
         else:
             self.adc_dac_ctrl = (self.adc_dac_ctrl & ~3) | 1
-        self.write_word(self.CHIP_ADCDAC_CTRL, self.adc_dac_ctrl)
+        self.regs[CHIP_ADCDAC_CTRL] = self.adc_dac_ctrl
 
     def audio_processor(self, enable=True, pre=True):
         """Enable or disable the audio processor.
@@ -644,16 +644,16 @@ class CODEC:
                         False=Post-processor ADC->I2S, I2S->DAP, DAP->DAC"""
         if not enable:
             # Disable audio processor
-            self.write_word(self.CHIP_SSS_CTRL, 0x10)
-            self.write_word(self.DAP_CONTROL, 0x00)
+            self.regs[CHIP_SSS_CTRL] = 0x10
+            self.regs[DAP_CONTROL] = 0x00
         elif pre:
             # Audio processor pre-processes analog input before microcontroller
-            self.write_word(self.CHIP_SSS_CTRL, 0x13)
-            self.write_word(self.DAP_CONTROL, 0x01)
+            self.regs[CHIP_SSS_CTRL] = 0x13
+            self.regs[DAP_CONTROL] = 0x01
         else:
             # Audio processor post-processes microcontroller output
-            self.write_word(self.CHIP_SSS_CTRL, 0x70)
-            self.write_word(self.DAP_CONTROL, 0x01)
+            self.regs[CHIP_SSS_CTRL] = 0x70
+            self.regs[DAP_CONTROL] = 0x01
 
     def auto_volume_configure(self, max_gain, lbi_response, hard_limit,
                               threshold, attack, decay):
@@ -683,12 +683,12 @@ class CODEC:
         thresh = (pow(10, threshold / 20) * 0.636) * pow(2, 15)
         att = (1 - pow(10, -(attack / (20 * 44100)))) * pow(2, 19)
         dec = (1 - pow(10, -(decay / (20 * 44100)))) * pow(2, 23)
-        self.write_word(self.DAP_AVC_THRESHOLD, thresh)
-        self.write_word(self.DAP_AVC_ATTACK, att)
-        self.write_word(self.DAP_AVC_DECAY, dec)
+        self.regs[DAP_AVC_THRESHOLD] = thresh
+        self.regs[DAP_AVC_ATTACK] = att
+        self.regs[DAP_AVC_DECAY] = dec
         self.auto_volume_control |= ((max_gain << 12) | (lbi_response << 8) |
                                      (hard_limit << 5))
-        self.write_word(self.DAP_AVC_CTRL, self.auto_volume_control)
+        self.regs[DAP_AVC_CTRL] = self.auto_volume_control
 
     def auto_volume_enable(self, enable=True):
         """Enable/disable auto volume control.
@@ -700,7 +700,7 @@ class CODEC:
             self.auto_volume_control |= 1
         else:
             self.auto_volume_control &= ~1
-        self.write_word(self.DAP_AVC_CTRL, self.auto_volume_control)
+        self.regs[DAP_AVC_CTRL] = self.auto_volume_control
 
     def bass_enhance_configure(self, lr_level=5, bass_level=31, bypass_hpf=0,
                                cutoff=4):
@@ -732,12 +732,12 @@ class CODEC:
         if not 0 <= cutoff <= 6:
             raise ValueError("Invalid cutoff value.")
 
-        self.write_word(self.DAP_BASS_ENHANCE_CTRL,
+        self.regs[DAP_BASS_ENHANCE_CTRL] = (
                         ((0x3F - self.calc_volume(lr_level, 0x3F)) << 8) |
                         (0x7F - self.calc_volume(bass_level)))
 
         self.bass_enhance |= ((bypass_hpf << 8) | (cutoff << 4))
-        self.write_word(self.DAP_BASS_ENHANCE, self.bass_enhance)
+        self.regs[DAP_BASS_ENHANCE] = self.bass_enhance
 
     def bass_enhance_enable(self, enable=True):
         """Enable/disable bass enhance.
@@ -749,7 +749,7 @@ class CODEC:
             self.bass_enhance |= 1
         else:
             self.bass_enhance &= ~1
-        self.write_word(self.DAP_BASS_ENHANCE, self.bass_enhance)
+        self.regs[DAP_BASS_ENHANCE] = self.bass_enhance
 
     def calc_biquad(self, filter_type, fc, db_gain, q, quantization_unit, fs):
         """Calculate biquadratic filter.
@@ -770,7 +770,7 @@ class CODEC:
             please check that those values are limited to valid results."""
 
         a = 0.0
-        if filter_type < self.FILTER_PARAEQ:
+        if filter_type < FILTER_PARAEQ:
             a = pow(10, db_gain / 20)
         else:
             a = pow(10, db_gain / 40)
@@ -781,49 +781,49 @@ class CODEC:
         beta = sqrt(a) / q
         a0 = a1 = a2 = b0 = b1 = b2 = 0.0
 
-        if filter_type == self.FILTER_LOPASS:
+        if filter_type == FILTER_LOPASS:
             b0 = (1.0 - cosw) * 0.5
             b1 = 1.0 - cosw
             b2 = (1.0 - cosw) * 0.5
             a0 = 1.0 + alpha
             a1 = 2.0 * cosw
             a2 = alpha - 1.0
-        elif filter_type == self.FILTER_HIPASS:
+        elif filter_type == FILTER_HIPASS:
             b0 = (1.0 + cosw) * 0.5
             b1 = -(cosw + 1.0)
             b2 = (1.0 + cosw) * 0.5
             a0 = 1.0 + alpha
             a1 = 2.0 * cosw
             a2 = alpha - 1.0
-        elif filter_type == self.FILTER_BANDPASS:
+        elif filter_type == FILTER_BANDPASS:
             b0 = alpha
             b1 = 0.0
             b2 = -alpha
             a0 = 1.0 + alpha
             a1 = 2.0 * cosw
             a2 = alpha - 1.0
-        elif filter_type == self.FILTER_NOTCH:
+        elif filter_type == FILTER_NOTCH:
             b0 = 1.0
             b1 = -2.0 * cosw
             b2 = 1.0
             a0 = 1.0 + alpha
             a1 = 2.0 * cosw
             a2 = -(1.0 - alpha)
-        elif filter_type == self.FILTER_PARAEQ:
+        elif filter_type == FILTER_PARAEQ:
             b0 = 1.0 + (alpha * a)
             b1 = -2.0 * cosw
             b2 = 1.0 - (alpha * a)
             a0 = 1.0 + (alpha / a)
             a1 = 2.0 * cosw
             a2 = -(1.0 - (alpha / a))
-        elif filter_type == self.FILTER_LOSHELF:
+        elif filter_type == FILTER_LOSHELF:
             b0 = a * ((a + 1.0) - ((a - 1.0) * cosw) + (beta * sinw))
             b1 = 2.0 * a * ((a - 1.0) - ((a + 1.0) * cosw))
             b2 = a * ((a + 1.0) - ((a - 1.0) * cosw) - (beta * sinw))
             a0 = (a + 1.0) + ((a - 1.0) * cosw) + (beta * sinw)
             a1 = 2.0 * ((a - 1.0) + ((a + 1.0) * cosw))
             a2 = -((a + 1.0) + ((a - 1.0) * cosw) - (beta * sinw))
-        elif filter_type == self.FILTER_HISHELF:
+        elif filter_type == FILTER_HISHELF:
             b0 = a * ((a + 1.0) + ((a - 1.0) * cosw) + (beta * sinw))
             b1 = -2.0 * a * ((a - 1.0) + ((a + 1.0) * cosw))
             b2 = a * ((a + 1.0) + ((a - 1.0) * cosw) - (beta * sinw))
@@ -875,7 +875,7 @@ class CODEC:
             raise ValueError("Invalid DAC volume values.")
         volume = (((0xFC - self.calc_volume(right, 0xC0)) << 8) |
                   (0xFC - self.calc_volume(left, 0xC0)))
-        self.write_word(self.CHIP_DAC_VOL, volume)
+        self.regs[CHIP_DAC_VOL] = volume
 
     def dac_volume_ramp(self, enable=True, linear=False):
         """Enable or disable the DAC volume ramp.
@@ -891,7 +891,7 @@ class CODEC:
                 self.adc_dac_ctrl |= (3 << 8)
         else:
             self.adc_dac_ctrl &= ~(3 << 8)
-        self.write_word(self.CHIP_ADCDAC_CTRL, self.adc_dac_ctrl)
+        self.regs[CHIP_ADCDAC_CTRL] = self.adc_dac_ctrl
 
     def headphone_select(self, input):
         """Select the headphone input.
@@ -901,11 +901,11 @@ class CODEC:
         if not 0 <= input <= 1:
             raise ValueError("Invalid headphone input value.")
 
-        if input == self.AUDIO_HEADPHONE_DAC:
+        if input == AUDIO_HEADPHONE_DAC:
             self.analog_ctrl &= ~(1 << 6)
-        elif input == self.AUDIO_HEADPHONE_LINEIN:
+        elif input == AUDIO_HEADPHONE_LINEIN:
             self.analog_ctrl |= (1 << 6)
-        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
+        self.regs[CHIP_ANA_CTRL] = self.analog_ctrl
 
     def input_select(self, input):
         """Select the audio input.
@@ -915,16 +915,16 @@ class CODEC:
         if not 0 <= input <= 1:
             raise ValueError("Invalid audio input value.")
 
-        if input == self.AUDIO_INPUT_LINEIN:
-            self.write_word(self.CHIP_ANA_ADC_CTRL, 0x55)
+        if input == AUDIO_INPUT_LINEIN:
+            self.regs[CHIP_ANA_ADC_CTRL] = 0x55
             self.analog_ctrl |= (1 << 2)  # ADC Input = LineIn
-            self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
+            self.regs[CHIP_ANA_CTRL] = self.analog_ctrl
 
-        elif input == self.AUDIO_INPUT_MIC:
-            self.write_word(self.CHIP_ANA_ADC_CTRL, 0x88)
+        elif input == AUDIO_INPUT_MIC:
+            self.regs[CHIP_ANA_ADC_CTRL] = 0x88
             self.analog_ctrl &= ~(1 << 2)  # ADC Input = Mic
-            self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
-            self.write_word(self.CHIP_MIC_CTRL, 0x173)
+            self.regs[CHIP_ANA_CTRL] = self.analog_ctrl
+            self.regs[CHIP_MIC_CTRL] = 0x173
 
     def linein_level(self, left, right):
         """Set left and right channel ADC level.
@@ -952,7 +952,7 @@ class CODEC:
             """
         if not 0 <= left <= 15 and not 0 <= right <= 15:
             raise ValueError("Invalid linein level values.")
-        self.write_word(self.CHIP_ANA_ADC_CTRL, (left << 4) | right)
+        self.regs[CHIP_ANA_ADC_CTRL] = (left << 4) | right
 
     def lineout_level(self, left, right):
         """Set left and right channel lineout level.
@@ -970,7 +970,7 @@ class CODEC:
             """
         if not 0 <= left <= 31 and not 0 <= right <= 31:
             raise ValueError("Invalid lineout level values.")
-        self.write_word(self.CHIP_LINE_OUT_VOL, (right << 8) | left)
+        self.regs[CHIP_LINE_OUT_VOL] = (right << 8) | left
 
     def mic_gain(self, gain):
         """Sets microphone amplifier gain.
@@ -991,20 +991,8 @@ class CODEC:
         input_gain = (gain * 2) // 3
         if input_gain > 15:
             input_gain = 15
-        self.write_word(self.CHIP_MIC_CTRL, 0x0170 | preamp_gain)
-        self.write_word(self.CHIP_ANA_ADC_CTRL, (input_gain << 4) | input_gain)
-
-    def modify_word(self, cmd, data, mask):
-        """Modify double byte to SGTL5000 using mask.
-        Args:
-            cmd (byte): Command address to write
-            data (int): Int to write
-            mask (int): Bit mask defines what bits to modify
-        """
-        old_data = self.read_word(cmd)
-        data = (old_data & ~mask) | data
-        self.write_word(cmd, data)
-
+        self.regs[CHIP_MIC_CTRL] = 0x0170 | preamp_gain
+        self.regs[CHIP_ANA_ADC_CTRL] = (input_gain << 4) | input_gain
 
     def mute_adc(self, mute=True):
         """Mute or unmute the ADC.
@@ -1014,7 +1002,7 @@ class CODEC:
             self.analog_ctrl |= 1
         else:
             self.analog_ctrl &= ~1
-        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
+        self.regs[CHIP_ANA_CTRL] = self.analog_ctrl
 
     def mute_dac(self, mute=True):
         """Mute or unmute the left and right DAC channels.
@@ -1024,7 +1012,7 @@ class CODEC:
             self.adc_dac_ctrl |= (3 << 2)
         else:
             self.adc_dac_ctrl &= ~(3 << 2)
-        self.write_word(self.CHIP_ADCDAC_CTRL, self.adc_dac_ctrl)
+        self.regs[CHIP_ADCDAC_CTRL] = self.adc_dac_ctrl
 
     def mute_headphone(self, mute=True):
         """Mute or unmute the headphone outputs.
@@ -1034,7 +1022,7 @@ class CODEC:
             self.analog_ctrl |= (1 << 4)
         else:
             self.analog_ctrl &= ~(1 << 4)
-        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
+        self.regs[CHIP_ANA_CTRL] = self.analog_ctrl
 
     def mute_lineout(self, mute=True):
         """Mute or unmute the lineout.
@@ -1044,7 +1032,7 @@ class CODEC:
             self.analog_ctrl |= (1 << 8)
         else:
             self.analog_ctrl &= ~(1 << 8)
-        self.write_word(self.CHIP_ANA_CTRL, self.analog_ctrl)
+        self.regs[CHIP_ANA_CTRL] = self.analog_ctrl
 
     def peq_filters(self, filters):
         """Set the 7-Band Parametric EQ filter count.
@@ -1059,17 +1047,7 @@ class CODEC:
             select_eq must be set to 1 in order to enable the PEQ"""
         if not 0 <= filters <= 7:
             raise ValueError("Invalid filter count value.")
-        self.write_word(self.DAP_PEQ, filters)
-
-    def read_word(self, cmd):
-        """Read double byte from SGTL5000.
-        Args:
-            cmd (byte): Command address to read
-        Returns:
-            int: value
-        """
-        buf = self.i2c.readfrom_mem(self.address, cmd, 2, addrsize=16)
-        return int.from_bytes(buf, 'big', True)
+        self.regs[DAP_PEQ] = filters
 
     def select_eq(self, eq):
         """Selects PEQ, GEQ, Tone Control or disabled
@@ -1083,7 +1061,7 @@ class CODEC:
              in order for the PEQ to be enabled."""
         if not 0 <= eq <= 3:
             raise ValueError("Invalid eq value.")
-        self.write_word(self.DAP_AUDIO_EQ, eq)
+        self.regs[DAP_AUDIO_EQ] = eq
 
     def set_eq_band(self, band, level):
         """Sets the specific EQ band.
@@ -1105,7 +1083,7 @@ class CODEC:
         if level > 48:
             level = 48
         level += 47
-        self.write_word(self.DAP_AUDIO_EQ_BASS_BAND0 + (band * 2), level)
+        self.regs[DAP_AUDIO_EQ_BASS_BAND0 + (band * 2)] = level
 
     def set_eq_bands(self, bass=0, mid_bass=0, midrange=0, mid_treble=0,
                      treble=0):
@@ -1129,23 +1107,18 @@ class CODEC:
             filter_parameters(List(int)): List of filter coefficients
         """
         # *** Not tested
-        self.write_word(self.DAP_FILTER_COEF_ACCESS, filter_index)
-        self.write_word(self.DAP_COEF_WR_B0_MSB,
-                        (filter_parameters[0] >> 4) & 65535)
-        self.write_word(self.DAP_COEF_WR_B0_LSB, filter_parameters[1] & 15)
-        self.write_word(self.DAP_COEF_WR_B1_MSB,
-                        (filter_parameters[2] >> 4) & 65535)
-        self.write_word(self.DAP_COEF_WR_B1_LSB, filter_parameters[3] & 15)
-        self.write_word(self.DAP_COEF_WR_B2_MSB,
-                        (filter_parameters[4] >> 4) & 65535)
-        self.write_word(self.DAP_COEF_WR_B2_LSB, filter_parameters[5] & 15)
-        self.write_word(self.DAP_COEF_WR_A1_MSB,
-                        (filter_parameters[6] >> 4) & 65535)
-        self.write_word(self.DAP_COEF_WR_A1_LSB, filter_parameters[7] & 15)
-        self.write_word(self.DAP_COEF_WR_A2_MSB,
-                        (filter_parameters[8] >> 4) & 65535)
-        self.write_word(self.DAP_COEF_WR_A2_LSB, filter_parameters[9] & 15)
-        self.write_word(self.DAP_FILTER_COEF_ACCESS, 0x100 | filter_index)
+        self.regs[DAP_FILTER_COEF_ACCESS] = filter_index
+        self.regs[DAP_COEF_WR_B0_MSB] = (filter_parameters[0] >> 4) & 65535
+        self.regs[DAP_COEF_WR_B0_LSB] = filter_parameters[1] & 15
+        self.regs[DAP_COEF_WR_B1_MSB] = (filter_parameters[2] >> 4) & 65535
+        self.regs[DAP_COEF_WR_B1_LSB] = filter_parameters[3] & 15
+        self.regs[DAP_COEF_WR_B2_MSB] = (filter_parameters[4] >> 4) & 65535
+        self.regs[DAP_COEF_WR_B2_LSB] = filter_parameters[5] & 15
+        self.regs[DAP_COEF_WR_A1_MSB] = (filter_parameters[6] >> 4) & 65535
+        self.regs[DAP_COEF_WR_A1_LSB] = filter_parameters[7] & 15
+        self.regs[DAP_COEF_WR_A2_MSB] = (filter_parameters[8] >> 4) & 65535
+        self.regs[DAP_COEF_WR_A2_LSB] = filter_parameters[9] & 15
+        self.regs[DAP_FILTER_COEF_ACCESS] = 0x100 | filter_index
 
     def set_surround_sound(self, select, width=4):
         """Set Freescale surround selection.
@@ -1161,7 +1134,7 @@ class CODEC:
             raise ValueError("Invalid select value.")
         if not 0 <= select <= 3:
             raise ValueError("Invalid width value.")
-        self.write_word(self.DAP_SGTL_SURROUND, (width << 4) | select)
+        self.regs[DAP_SGTL_SURROUND] = (width << 4) | select
 
     def vag_ramp(self, slow=False):
         """Set VAG ramp control.
@@ -1175,7 +1148,7 @@ class CODEC:
             chip_ref_ctrl |= 1
         else:
             chip_ref_ctrl &= ~1
-        self.write_word(self.CHIP_REF_CTRL, chip_ref_ctrl)
+        self.regs[CHIP_REF_CTRL] = chip_ref_ctrl
 
     def volume(self, left, right):
         """Set headphone left and right channel volume.
@@ -1188,9 +1161,25 @@ class CODEC:
 
         volume = (((0x7F - self.calc_volume(right)) << 8) |
                   (0x7F - self.calc_volume(left)))
-        self.write_word(self.CHIP_ANA_HP_CTRL, volume)
+        self.regs[CHIP_ANA_HP_CTRL] = volume
 
-    def write_word(self, cmd, data):
+
+class Regs:
+    def __init__(self, address, i2c):
+        self.i2c = i2c
+        self.address = address
+
+    def __getitem__(self, cmd):
+        """Read double byte from SGTL5000.
+        Args:
+            cmd (byte): Command address to read
+        Returns:
+            int: value
+        """
+        buf = self.i2c.readfrom_mem(self.address, cmd, 2, addrsize=16)
+        return int.from_bytes(buf, 'big', True)
+
+    def __setitem__(self, cmd, data):
         """Write double byte to SGTL5000.
         Args:
             cmd (byte): Command address to write
