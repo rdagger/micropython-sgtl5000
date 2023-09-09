@@ -19,7 +19,7 @@ class DUMP:
         self.codec = codec
 
     def get_chip_id(self):
-        v = self.codec.read_word(self.codec.CHIP_ID)
+        v = self.codec.regs[self.codec.CHIP_ID]
         return OrderedDict({
             "CHIP_ID": bin(v)[2:],
             "PARTID": (v >> 8) & 0xFF,
@@ -27,7 +27,7 @@ class DUMP:
         })
 
     def get_chip_dig_power(self):
-        v = self.codec.read_word(self.codec.CHIP_DIG_POWER)
+        v = self.codec.regs[self.codec.CHIP_DIG_POWER]
         return OrderedDict({
             "CHIP_DIG_POWER": bin(v)[2:],
             "ADC_POWERUP": (v >> 6) & 0x01,
@@ -38,7 +38,7 @@ class DUMP:
         })
 
     def get_chip_clk_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_CLK_CTRL)
+        v = self.codec.regs[self.codec.CHIP_CLK_CTRL]
         return OrderedDict({
             "CHIP_CLK_CTRL": bin(v)[2:],
             "RATE_MODE": (v >> 4) & 0x03,
@@ -47,7 +47,7 @@ class DUMP:
         })
 
     def get_chip_i2s_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_I2S_CTRL)
+        v = self.codec.regs[self.codec.CHIP_I2S_CTRL]
         return OrderedDict({
             "CHIP_I2S_CTRL": bin(v)[2:],
             "SCLKFREQ": (v >> 8) & 0x01,
@@ -60,7 +60,7 @@ class DUMP:
         })
 
     def get_chip_sss_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_SSS_CTRL)
+        v = self.codec.regs[self.codec.CHIP_SSS_CTRL]
         return OrderedDict({
             "CHIP_SSS_CTRL": bin(v)[2:],
             "DAP_MIX_LRSWAP": (v >> 14) & 0x01,
@@ -74,7 +74,7 @@ class DUMP:
         })
 
     def get_chip_adcdac_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_ADCDAC_CTRL)
+        v = self.codec.regs[self.codec.CHIP_ADCDAC_CTRL]
         return OrderedDict({
             "CHIP_ADCDAC_CTRL": bin(v)[2:],
             "VOL_BUSY_DAC_RIGHT": (v >> 13) & 0x01,
@@ -88,7 +88,7 @@ class DUMP:
         })
 
     def get_chip_dac_vol(self):
-        v = self.codec.read_word(self.codec.CHIP_DAC_VOL)
+        v = self.codec.regs[self.codec.CHIP_DAC_VOL]
         return OrderedDict({
             "CHIP_DAC_VOL": bin(v)[2:],
             "DAC_VOL_RIGHT": (v >> 8) & 0xFF,
@@ -96,7 +96,7 @@ class DUMP:
         })
 
     def get_chip_pad_strength(self):
-        v = self.codec.read_word(self.codec.CHIP_PAD_STRENGTH)
+        v = self.codec.regs[self.codec.CHIP_PAD_STRENGTH]
         return OrderedDict({
             "CHIP_PAD_STRENGTH": bin(v)[2:],
             "I2S_LRCLK": (v >> 8) & 0x03,
@@ -107,7 +107,7 @@ class DUMP:
         })
 
     def get_chip_ana_adc_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_ANA_ADC_CTRL)
+        v = self.codec.regs[self.codec.CHIP_ANA_ADC_CTRL]
         return OrderedDict({
             "CHIP_ANA_ADC_CTRL": bin(v)[2:],
             "ADC_VOL_M6DB": (v >> 8) & 0x01,
@@ -116,7 +116,7 @@ class DUMP:
         })
 
     def get_chip_ana_hp_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_ANA_HP_CTRL)
+        v = self.codec.regs[self.codec.CHIP_ANA_HP_CTRL]
         return OrderedDict({
             "CHIP_ANA_HP_CTRL": bin(v)[2:],
             "HP_VOL_RIGHT": (v >> 8) & 0x7F,
@@ -124,7 +124,7 @@ class DUMP:
         })
 
     def get_chip_ana_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_ANA_CTRL)
+        v = self.codec.regs[self.codec.CHIP_ANA_CTRL]
         return OrderedDict({
             "CHIP_ANA_CTRL": bin(v)[2:],
             "MUTE_LO": (v >> 8) & 0x01,
@@ -137,7 +137,7 @@ class DUMP:
         })
 
     def get_chip_linreg_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_LINREG_CTRL)
+        v = self.codec.regs[self.codec.CHIP_LINREG_CTRL]
         return OrderedDict({
             "CHIP_LINREG_CTRL": bin(v)[2:],
             "VDDC_MAN_ASSN": (v >> 6) & 0x01,
@@ -146,7 +146,7 @@ class DUMP:
         })
 
     def get_chip_ref_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_REF_CTRL)
+        v = self.codec.regs[self.codec.CHIP_REF_CTRL]
         return OrderedDict({
             "CHIP_REF_CTRL": bin(v)[2:],
             "VAG_VAL": (v >> 4) & 0x1F,
@@ -155,7 +155,7 @@ class DUMP:
         })
 
     def get_chip_mic_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_MIC_CTRL)
+        v = self.codec.regs[self.codec.CHIP_MIC_CTRL]
         return OrderedDict({
             "CHIP_MIC_CTRL": bin(v)[2:],
             "BIAS_RESISTOR": (v >> 8) & 0x03,
@@ -164,7 +164,7 @@ class DUMP:
         })
 
     def get_chip_line_out_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_LINE_OUT_CTRL)
+        v = self.codec.regs[self.codec.CHIP_LINE_OUT_CTRL]
         return OrderedDict({
             "CHIP_LINE_OUT_CTRL": bin(v)[2:],
             "OUT_CURRENT": (v >> 8) & 0x0F,
@@ -172,7 +172,7 @@ class DUMP:
         })
 
     def get_chip_line_out_vol(self):
-        v = self.codec.read_word(self.codec.CHIP_LINE_OUT_VOL)
+        v = self.codec.regs[self.codec.CHIP_LINE_OUT_VOL]
         return OrderedDict({
             "CHIP_LINE_OUT_VOL": bin(v)[2:],
             "LO_VOL_RIGHT": (v >> 8) & 0x1F,
@@ -180,7 +180,7 @@ class DUMP:
         })
 
     def get_chip_ana_power(self):
-        v = self.codec.read_word(self.codec.CHIP_ANA_POWER)
+        v = self.codec.regs[self.codec.CHIP_ANA_POWER]
         return OrderedDict({
             "CHIP_ANA_POWER": bin(v)[2:],
             "DAC_MONO": (v >> 14) & 0x01,
@@ -201,7 +201,7 @@ class DUMP:
         })
 
     def get_chip_pll_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_PLL_CTRL)
+        v = self.codec.regs[self.codec.CHIP_PLL_CTRL]
         return OrderedDict({
             "CHIP_PLL_CTRL": bin(v)[2:],
             "INT_DIVISOR": (v >> 11) & 0x1F,
@@ -209,7 +209,7 @@ class DUMP:
         })
 
     def get_chip_clk_top_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_CLK_TOP_CTRL)
+        v = self.codec.regs[self.codec.CHIP_CLK_TOP_CTRL]
         return OrderedDict({
             "CHIP_CLK_TOP_CTRL": bin(v)[2:],
             "ENABLE_INT_OSC": (v >> 11) & 0x01,
@@ -217,7 +217,7 @@ class DUMP:
         })
 
     def get_chip_ana_status(self):
-        v = self.codec.read_word(self.codec.CHIP_ANA_STATUS)
+        v = self.codec.regs[self.codec.CHIP_ANA_STATUS]
         return OrderedDict({
             "CHIP_ANA_STATUS": bin(v)[2:],
             "LRSHORT_STS": (v >> 9) & 0x01,
@@ -226,7 +226,7 @@ class DUMP:
         })
 
     def get_chip_ana_test1(self):
-        v = self.codec.read_word(self.codec.CHIP_ANA_TEST1)
+        v = self.codec.regs[self.codec.CHIP_ANA_TEST1]
         return OrderedDict({
             "CHIP_ANA_TEST1": bin(v)[2:],
             "HP_IALL_ADJ": (v >> 14) & 0x03,
@@ -244,7 +244,7 @@ class DUMP:
         })
 
     def get_chip_ana_test2(self):
-        v = self.codec.read_word(self.codec.CHIP_ANA_TEST2)
+        v = self.codec.regs[self.codec.CHIP_ANA_TEST2]
         return OrderedDict({
             "CHIP_ANA_TEST2": bin(v)[2:],
             "LINEOUT_TO_VDDA": (v >> 14) & 0x01,
@@ -265,7 +265,7 @@ class DUMP:
         })
 
     def get_chip_short_ctrl(self):
-        v = self.codec.read_word(self.codec.CHIP_SHORT_CTRL)
+        v = self.codec.regs[self.codec.CHIP_SHORT_CTRL]
         return OrderedDict({
             "CHIP_SHORT_CTRL": bin(v)[2:],
             "LVLADJR": (v >> 12) & 0x07,
@@ -276,7 +276,7 @@ class DUMP:
         })
 
     def get_dap_control(self):
-        v = self.codec.read_word(self.codec.DAP_CONTROL)
+        v = self.codec.regs[self.codec.DAP_CONTROL]
         return OrderedDict({
             "DAP_CONTROL": bin(v)[2:],
             "MIX_EN": (v >> 4) & 0x01,
@@ -284,14 +284,14 @@ class DUMP:
         })
 
     def get_dap_peq(self):
-        v = self.codec.read_word(self.codec.DAP_PEQ)
+        v = self.codec.regs[self.codec.DAP_PEQ]
         return OrderedDict({
             "DAP_PEQ": bin(v)[2:],
             "EN": v & 0x07
         })
 
     def get_dap_bass_enhance(self):
-        v = self.codec.read_word(self.codec.DAP_BASS_ENHANCE)
+        v = self.codec.regs[self.codec.DAP_BASS_ENHANCE]
         return OrderedDict({
             "DAP_BASS_ENHANCE": bin(v)[2:],
             "BYPASS_HPF": (v >> 8) & 0x01,
@@ -300,7 +300,7 @@ class DUMP:
         })
 
     def get_dap_bass_enhance_ctrl(self):
-        v = self.codec.read_word(self.codec.DAP_BASS_ENHANCE_CTRL)
+        v = self.codec.regs[self.codec.DAP_BASS_ENHANCE_CTRL]
         return OrderedDict({
             "DAP_BASS_ENHANCE_CTRL": bin(v)[2:],
             "LR_LEVEL": (v >> 8) & 0x3F,
@@ -308,14 +308,14 @@ class DUMP:
         })
 
     def get_dap_audio_eq(self):
-        v = self.codec.read_word(self.codec.DAP_AUDIO_EQ)
+        v = self.codec.regs[self.codec.DAP_AUDIO_EQ]
         return OrderedDict({
             "DAP_AUDIO_EQ": bin(v)[2:],
             "EN": v & 0x03
         })
 
     def get_dap_sgtl_surround(self):
-        v = self.codec.read_word(self.codec.DAP_SGTL_SURROUND)
+        v = self.codec.regs[self.codec.DAP_SGTL_SURROUND]
         return OrderedDict({
             "DAP_SGTL_SURROUND": bin(v)[2:],
             "WIDTH_CONTROL": (v >> 4) & 0x07,
@@ -323,7 +323,7 @@ class DUMP:
         })
 
     def get_dap_filter_coef_access(self):
-        v = self.codec.read_word(self.codec.DAP_FILTER_COEF_ACCESS)
+        v = self.codec.regs[self.codec.DAP_FILTER_COEF_ACCESS]
         return OrderedDict({
             "DAP_FILTER_COEF_ACCESS": bin(v)[2:],
             "WR": (v >> 8) & 0x01,
@@ -331,69 +331,69 @@ class DUMP:
         })
 
     def get_dap_coef_wr_b0_msb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_B0_MSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_B0_MSB]
         return OrderedDict({
             "DAP_COEF_WR_B0_MSB": bin(v)[2:]
         })
 
     def get_dap_coef_wr_b0_lsb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_B0_LSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_B0_LSB]
         return OrderedDict({
             "DAP_COEF_WR_B0_LSB": bin(v)[2:],
             "LSB4": v & 0x0F
         })
 
     def get_dap_audio_eq_bass_band0(self):
-        v = self.codec.read_word(self.codec.DAP_AUDIO_EQ_BASS_BAND0)
+        v = self.codec.regs[self.codec.DAP_AUDIO_EQ_BASS_BAND0]
         return OrderedDict({
             "DAP_AUDIO_EQ_BASS_BAND0": bin(v)[2:],
             "VOLUME": v & 0x7F
         })
 
     def get_dap_audio_eq_band1(self):
-        v = self.codec.read_word(self.codec.DAP_AUDIO_EQ_BAND1)
+        v = self.codec.regs[self.codec.DAP_AUDIO_EQ_BAND1]
         return OrderedDict({
             "DAP_AUDIO_EQ_BAND1": bin(v)[2:],
             "VOLUME": v & 0x7F
         })
 
     def get_dap_audio_eq_band2(self):
-        v = self.codec.read_word(self.codec.DAP_AUDIO_EQ_BAND2)
+        v = self.codec.regs[self.codec.DAP_AUDIO_EQ_BAND2]
         return OrderedDict({
             "DAP_AUDIO_EQ_BAND2": bin(v)[2:],
             "VOLUME": v & 0x7F
         })
 
     def get_dap_audio_eq_band3(self):
-        v = self.codec.read_word(self.codec.DAP_AUDIO_EQ_BAND3)
+        v = self.codec.regs[self.codec.DAP_AUDIO_EQ_BAND3]
         return OrderedDict({
             "DAP_AUDIO_EQ_BAND3": bin(v)[2:],
             "VOLUME": v & 0x7F
         })
 
     def get_dap_audio_eq_treble_band4(self):
-        v = self.codec.read_word(self.codec.DAP_AUDIO_EQ_TREBLE_BAND4)
+        v = self.codec.regs[self.codec.DAP_AUDIO_EQ_TREBLE_BAND4]
         return OrderedDict({
             "DAP_AUDIO_EQ_TREBLE_BAND4": bin(v)[2:],
             "VOLUME": v & 0x7F
         })
 
     def get_dap_main_chan(self):
-        v = self.codec.read_word(self.codec.DAP_MAIN_CHAN)
+        v = self.codec.regs[self.codec.DAP_MAIN_CHAN]
         return OrderedDict({
             "DAP_MAIN_CHAN": bin(v)[2:],
             "VOL": v & 0xFFFF
         })
 
     def get_dap_mix_chan(self):
-        v = self.codec.read_word(self.codec.DAP_MIX_CHAN)
+        v = self.codec.regs[self.codec.DAP_MIX_CHAN]
         return OrderedDict({
             "DAP_MIX_CHAN": bin(v)[2:],
             "VOL": v & 0xFFFF
         })
 
     def get_dap_avc_ctrl(self):
-        v = self.codec.read_word(self.codec.DAP_AVC_CTRL)
+        v = self.codec.regs[self.codec.DAP_AVC_CTRL]
         return OrderedDict({
             "DAP_AVC_CTRL": bin(v)[2:],
             "MAX_GAIN": (v >> 12) & 0x07,
@@ -403,72 +403,72 @@ class DUMP:
         })
 
     def get_dap_avc_threshold(self):
-        v = self.codec.read_word(self.codec.DAP_AVC_THRESHOLD)
+        v = self.codec.regs[self.codec.DAP_AVC_THRESHOLD]
         return OrderedDict({
             "DAP_AVC_THRESHOLD": bin(v)[2:]
         })
 
     def get_dap_avc_attack(self):
-        v = self.codec.read_word(self.codec.DAP_AVC_ATTACK)
+        v = self.codec.regs[self.codec.DAP_AVC_ATTACK]
         return OrderedDict({
             "DAP_AVC_ATTACK": bin(v)[2:],
             "RATE": v & 0x0FFF
         })
 
     def get_dap_avc_decay(self):
-        v = self.codec.read_word(self.codec.DAP_AVC_DECAY)
+        v = self.codec.regs[self.codec.DAP_AVC_DECAY]
         return OrderedDict({
             "DAP_AVC_DECAY": bin(v)[2:],
             "RATE": v & 0x0FFF
         })
 
     def get_dap_coef_wr_b1_msb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_B1_MSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_B1_MSB]
         return OrderedDict({
             "DAP_COEF_WR_B1_MSB": bin(v)[2:]
         })
 
     def get_dap_coef_wr_b1_lsb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_B1_LSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_B1_LSB]
         return OrderedDict({
             "DAP_COEF_WR_B1_LSB": bin(v)[2:],
             "LSB4": v & 0x0FFF
         })
 
     def get_dap_coef_wr_b2_msb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_B2_MSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_B2_MSB]
         return OrderedDict({
             "DAP_COEF_WR_B2_MSB": bin(v)[2:]
         })
 
     def get_dap_coef_wr_b2_lsb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_B2_LSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_B2_LSB]
         return OrderedDict({
             "DAP_COEF_WR_B2_LSB": bin(v)[2:],
             "LSB4": v & 0x0FFF
         })
 
     def get_dap_coef_wr_a1_msb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_A1_MSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_A1_MSB]
         return OrderedDict({
             "DAP_COEF_WR_A1_MSB": bin(v)[2:]
         })
 
     def get_dap_coef_wr_a1_lsb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_A1_LSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_A1_LSB]
         return OrderedDict({
             "DAP_COEF_WR_A1_LSB": bin(v)[2:],
             "LSB4": v & 0x0FFF
         })
 
     def get_dap_coef_wr_a2_msb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_A2_MSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_A2_MSB]
         return OrderedDict({
             "DAP_COEF_WR_A2_MSB": bin(v)[2:]
         })
 
     def get_dap_coef_wr_a2_lsb(self):
-        v = self.codec.read_word(self.codec.DAP_COEF_WR_A2_LSB)
+        v = self.codec.regs[self.codec.DAP_COEF_WR_A2_LSB]
         return OrderedDict({
             "DAP_COEF_WR_A2_LSB": bin(v)[2:],
             "LSB4": v & 0x0FFF

@@ -1143,7 +1143,7 @@ class CODEC:
         Notes:
             Setting this bit slows down the VAG ramp from ~200 to ~400 ms to reduce
             the startup pop, but increases the turn on/off time."""
-        chip_ref_ctrl= self.read_word(self.CHIP_REF_CTRL)
+        chip_ref_ctrl= self.regs[CHIP_REF_CTRL]
         if slow:
             chip_ref_ctrl |= 1
         else:
